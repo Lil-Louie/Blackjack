@@ -13,20 +13,25 @@ private:
     Player _dealer{"Dealer"};
     std::vector<Player*> _players; // Store pointers to Player
     int numPlayers;
-    bool singlePlayerMode;
+    char gameMode;
     CardCounter _cardCounter; // Card counter instance
 
 public:
     Game(); // Constructor
     ~Game(); // Destructor
 
+    void startTestSimulator();
+    void startMultiplayerMode();
+    void showMenu();
+    void showTable();
     void placeBets();
     void clearHands();
     void dealInitialCards();
-    void play();
+    void start_shoe();
     void dealerTurn();
     void determineWinners();
     void update(const std::vector<Player>& players, const Player dealer);
+    char mode() { return gameMode; }
 };
 
 #endif // BLACKJACK_GAME_H

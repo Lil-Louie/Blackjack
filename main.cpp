@@ -3,7 +3,7 @@
 
 int main() {
     Game game;
-    game.play();
+    game.start_shoe();
 
     return 0;
 }

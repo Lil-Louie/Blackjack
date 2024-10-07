@@ -13,7 +13,7 @@ public:
     int getCount() const { return _count; }
     void reset() { _count = 0; }
 
-    void updateCount(Card card) {
+    void Hi_LO_updateCount(Card card) {
         int rank = card.getRank();
         if (rank >= 2 && rank <= 6) {
             _count += 1; // Low cards

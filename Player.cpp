@@ -22,11 +22,9 @@ int Player::getScore() const {
 }
 
 void Player::showHand() const {
-    std::cout << _name << "'s hand: ";
     for (const auto& card : _hand) {
         std::cout << card.toString() << ", ";
     }
-    std::cout << "Score: " << getScore() << std::endl;
 }
 
 // Betting methods
@@ -52,5 +50,4 @@ void Player::pushBet() {
     _bankroll += _currentBet; // Push means return the bet
     _currentBet = 0; // Reset current bet
 }
-
 

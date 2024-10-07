@@ -1,17 +1,81 @@
+#include <iostream>
+#include <iomanip>
+#include <string>
+#include <vector>
+#include <sys/ioctl.h>
+#include <unistd.h>
 #include "Game.h"
 
-// Constructor
-Game::Game() : numPlayers(0), singlePlayerMode(false) {
-    char modeChoice;
-    std::cout << "Choose mode:\n1. Single Player vs CPU\n2. Multiplayer\n3.Test Simulator";
-    std::cin >> modeChoice;
 
-    if (modeChoice == '1') {
-        singlePlayerMode = true;
+// Constructor
+Game::Game() : numPlayers(0), gameMode() {
+    showMenu();
+    std::cout << std::setw((40) / 2) << "Mode: "; // Centered title
+    std::cin >> gameMode;
+}
+
+
+// Destructor
+Game::~Game() {
+    // Clean up allocated players
+    for (auto player : _players) {
+        delete player; // Free the memory allocated for each player
+    }
+}
+
+void Game::showMenu() {
+    const int width = 40;
+
+    std::cout << std::string(width, '=') << "\n";
+    std::cout << std::setw((width + 24) / 2) << "Welcome to Blackjack\n"; // Centered title
+    std::cout << std::string(width, '=') << "\n";
+    std::cout << std::setw((width + 15) / 2) << "Choose mode:\n"; // Centered prompt
+    std::cout << std::setw((width + 28) / 2) << "1. Single Player vs CPU\n"; // Centered option 1
+    std::cout << std::setw((width + 22) / 2) << "2. Multiplayer\n"; // Centered option 2
+    std::cout << std::setw((width + 21) / 2) << "3. Test Simulator\n"; // Centered option 3
+    std::cout << std::setw((width + 10) / 2) << "4. Exit\n"; // Centered option 4
+    std::cout << std::string(width, '=') << "\n";
+
+}
+
+
+
+/*
+void Game::startMultiplayerMode() {
+    std::cout << "How many players do you want to play with? (1-6): ";
+    std::cin >> numPlayers;
+
+    // Validate input
+    while (numPlayers < 1 || numPlayers > 6) {
+        std::cout << "Please enter a valid number of players (1-6): ";
+        std::cin >> numPlayers;
+    }
+
+    // Add players to the vector
+    for (int i = 1; i <= numPlayers; ++i) {
+        _players.push_back(new Player("Player " + std::to_string(i)));
+    }
+}
+*/
+
+void Game::startTestSimulator() {
+    int games;
+    int stratgey;
+    int bankroll;
+    int betSpread;
+
+    std::cout << "Starting Test Simulator...\n";
+
+}
+
+
+void Game::start_shoe() {
+
+
+    if (gameMode == '1') {
         numPlayers = 1; // Only one player
-        // Use the Basic Strategy player
         _players.push_back(new BasicStrategyPlayer("Basic Strategy Player"));
-    } else if (modeChoice == '2') {
+    } else if (gameMode == '2') {
         std::cout << "How many players do you want to play with? (1-6): ";
         std::cin >> numPlayers;
 
@@ -25,54 +89,13 @@ Game::Game() : numPlayers(0), singlePlayerMode(false) {
         for (int i = 1; i <= numPlayers; ++i) {
             _players.push_back(new Player("Player " + std::to_string(i)));
         }
+    } else if (gameMode == '3') {
+        startTestSimulator();
     } else {
         std::cout << "Invalid choice, exiting.\n";
         exit(1); // Exit if invalid choice
     }
-}
 
-// Destructor
-Game::~Game() {
-    // Clean up allocated players
-    for (auto player : _players) {
-        delete player; // Free the memory allocated for each player
-    }
-}
-
-void Game::placeBets() {
-    for (auto player : _players) {
-        std::cout << player->getName() << ", your current bankroll is $" << player->getBankroll() << ".\n";
-        int betAmount;
-        std::cout << "Enter your bet amount: ";
-        std::cin >> betAmount;
-        player->placeBet(betAmount);
-    }
-}
-
-void Game::clearHands() {
-    // Clear hands and scores for dealer
-    _dealer.clearHand();
-
-    // Clear hands and scores for all players
-    for (auto player : _players) {
-        player->clearHand();
-    }
-}
-
-void Game::dealInitialCards() {
-    int set = 0;
-    while (set != 2) {
-        for (auto player : _players) {
-            player->addCard(_deck.drawCard());
-            _cardCounter.updateCount(player->getHand().back()); // Update count for player's card
-        }
-        _dealer.addCard(_deck.drawCard());
-        _cardCounter.updateCount(_dealer.getHand().back()); // Update count for dealer's card
-        set++;
-    }
-}
-
-void Game::play() {
     while (true) {
         if (_deck.getRemainingCards() <= 8) {
             std::cout << "Only " << _deck.getRemainingCards() << " cards left in the shoe. Ending game.\n";
@@ -99,7 +122,7 @@ void Game::play() {
 
                 char action;
 
-                if (singlePlayerMode) {
+                if (gameMode == 3) {
                     BasicStrategyPlayer *strategyPlayer = dynamic_cast<BasicStrategyPlayer *>(player);
                     if (strategyPlayer) {
                         // Get the dealer's face-up card value
@@ -142,12 +165,40 @@ void Game::play() {
     }
 }
 
+void Game::placeBets() {
+    for (auto player : _players) {
+        showTable();
+        int betAmount;
+        std::cout << player->getName();
+        std::cout << ", enter your bet amount: ";
+        std::cin >> betAmount;
+        player->placeBet(betAmount);
+    }
+}
+
+
+
+void Game::dealInitialCards() {
+    int set = 0;
+    while (set != 2) {
+        for (auto player : _players) {
+            player->addCard(_deck.drawCard());
+            _cardCounter.Hi_LO_updateCount(player->getHand().back()); // Update count for player's card
+        }
+        _dealer.addCard(_deck.drawCard());
+        _cardCounter.Hi_LO_updateCount(_dealer.getHand().back()); // Update count for dealer's card
+        set++;
+    }
+}
+
+
+
 void Game::dealerTurn() {
     std::cout << "Dealer's turn...\n";
     while (_dealer.getScore() < 17) { // Dealer hits until reaching 17 or more
         _dealer.addCard(_deck.drawCard());
     }
-    _dealer.showHand(); // Show dealer's hand
+    _dealer.showHand();
 }
 
 void Game::determineWinners() {
@@ -171,6 +222,19 @@ void Game::determineWinners() {
             std::cout << player->getName() << " pushes (tie).\n";
             player->pushBet(); // Push means return the bet
         }
+    }
+}
+
+
+
+
+void Game::clearHands() {
+    // Clear hands and scores for dealer
+    _dealer.clearHand();
+
+    // Clear hands and scores for all players
+    for (auto player : _players) {
+        player->clearHand();
     }
 }
 /*
@@ -197,3 +261,47 @@ void Game::update(const std::vector<Player>& players, const Player dealer) {
     }
     std::cout << std::endl;
 }*/
+
+
+
+void Game::showTable(){
+
+    std::cout << "--------------------------------------------------------------------------------------------------------------------------\n";
+    std::cout << "-Running Count: " + std::to_string(_cardCounter.getCount()) + "                                       ";
+    std:: cout << _dealer.getName();
+    std::cout << "                                                           -\n";
+    std::cout << "-                                              ________________________                                                  -\n";
+    std::cout << "-                                                         ";
+    std:: cout << _dealer.getScore();
+    std::cout << "                                                              -\n";
+    for (int i = 0; i < 18; ++i) {
+        std::cout << "-                                                                                                                        -\n";
+    }
+    std::cout << "--------------------------------------------------------------------------------------------------------------------------\n";
+    // Print Bet amounts
+    for (int i = 0; i < 6; ++i) {
+        std::cout << "|Bet:$" << std::setw(5) << std::to_string(_players[i]->getCurrentBet()) + "    |          ";
+    }
+    std::cout << "|\n";
+    std::cout << "--------------------------------------------------------------------------------------------------------------------------\n";
+    // Print Player Names
+    for (int i = 0; i < 6; ++i) {
+        std::cout << "|" << std::setw(10) << _players[i]->getName() << "|          ";
+    }
+    std::cout << "\n";
+
+    // Print "Bankroll" labels
+    for (int i = 0; i < 6; ++i) {
+        std::cout << "|" << std::setw(10) << "Bankroll  |          ";
+    }
+    std::cout << "\n";
+
+    // Print Player Bankrolls
+    for (int i = 0; i < 6; ++i) {
+        std::cout << "|$" << std::setw(6) << _players[i]->getBankroll() << "   |          ";
+    }
+    std::cout << "\n";
+
+    std::cout << "--------------------------------------------------------------------------------------------------------------------------\n";
+
+}
